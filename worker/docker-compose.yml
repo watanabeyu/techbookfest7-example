@@ -1,0 +1,21 @@
+version: '2'
+
+services:
+  app:
+    build: .
+    container_name: 'techbookfest7-example-go-worker'
+    volumes:
+      - ./:/go/src/app
+    ports:
+      - '3000:8080'
+    command: 'go run main.go'
+    networks: 
+      - techbookfest7
+
+volumes:
+  data:
+    driver: 'local'
+
+networks:
+  techbookfest7:
+    external: true
