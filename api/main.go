@@ -15,14 +15,27 @@ import (
 
 type (
 	Token struct {
-		UID   uint64 `json:"uid"`
-		Os    string `json:"os"`
-		Token string `json:"token"`
-		Arn   string `json:"arn"`
+		UID     uint64 `json:"uid"`
+		Os      string `json:"os"`
+		Token   string `json:"token"`
+		Arn     string `json:"arn"`
+		Channel string `json:"channel"`
 	}
 
 	SnsEndPointCreateResult struct {
 		EndpointArn *string
+	}
+
+	Action struct {
+		To      uint64 `json:"to"`
+		From    uint64 `json:"from"`
+		Action  string `json:"action"`
+		Channel string `json:"channel"`
+	}
+
+	ActionResponse struct {
+		Action string `json:"action"`
+		Error  bool   `json:"error"`
 	}
 )
 
@@ -122,6 +135,45 @@ func main() {
 
 		/* return response */
 		return c.JSON(http.StatusOK, p)
+	})
+
+	e.POST("/action", func(c echo.Context) error {
+		/* get json */
+		p := new(Action)
+		if err := c.Bind(p); err != nil {
+			return err
+		}
+
+		/* connect to redis */
+		client := redis.NewClient(&redis.Options{
+			Addr:     redisHost,
+			Password: redisPass,
+			DB:       0,
+		})
+
+		pong, err := client.Ping().Result()
+		if err != nil {
+			log.Println(pong)
+			panic(err)
+		}
+
+		/* execute action */
+		var r ActionResponse
+		r.Action = p.Action
+		r.Error = false
+
+		/* set queue */
+		q, err := json.Marshal(p)
+		if err != nil {
+			panic(err)
+		}
+
+		client.LPush("queue", string(q))
+		client.Publish("channel:"+p.Action, string(q))
+		client.Close()
+
+		/* return response */
+		return c.JSON(http.StatusOK, r)
 	})
 
 	e.Logger.Fatal(e.Start(":8080"))
