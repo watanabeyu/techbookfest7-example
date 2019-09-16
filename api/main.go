@@ -36,7 +36,11 @@ const redisPass = "redispass"
 
 func NewAwsSession(conf *aws.Config) (*session.Session, error) {
 	region := awsRegion
-	conf.Credentials = credentials.NewStaticCredentials(awsAccessKey, awsAccessSecret, "")
+	conf.Credentials = credentials.NewStaticCredentials(
+		awsAccessKey,
+		awsAccessSecret,
+		"",
+	)
 	conf.Region = &region
 
 	sess, err := session.NewSession(conf)
@@ -80,7 +84,7 @@ func main() {
 			arn = androidArn
 		}
 
-		result, err := svc.CreatePlatformEndpoint(&sns.CreatePlatformEndpointInput{
+		res, err := svc.CreatePlatformEndpoint(&sns.CreatePlatformEndpointInput{
 			CustomUserData:         aws.String("user_" + strconv.FormatUint(p.UID, 10)),
 			PlatformApplicationArn: aws.String(arn),
 			Token:                  aws.String(p.Token),
@@ -90,7 +94,7 @@ func main() {
 			panic(err)
 		}
 
-		p.Arn = *result.EndpointArn
+		p.Arn = *res.EndpointArn
 
 		/* connect to redis */
 		client := redis.NewClient(&redis.Options{
