@@ -84,8 +84,9 @@ func main() {
 			arn = androidArn
 		}
 
+		userData := "user_" + strconv.FormatUint(p.UID, 10)
 		res, err := svc.CreatePlatformEndpoint(&sns.CreatePlatformEndpointInput{
-			CustomUserData:         aws.String("user_" + strconv.FormatUint(p.UID, 10)),
+			CustomUserData:         aws.String(userData),
 			PlatformApplicationArn: aws.String(arn),
 			Token:                  aws.String(p.Token),
 		})
