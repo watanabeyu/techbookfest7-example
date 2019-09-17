@@ -1,5 +1,6 @@
 FROM golang:1.13
 
+COPY . /go/src/app
 WORKDIR /go/src/app
 
 ENV GO111MODULE=on
